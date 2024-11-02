@@ -1,6 +1,6 @@
 ---
 title: "Real interest rates"
-author: "Andras Danis"
+author: ""
 format: html
 ---
 
