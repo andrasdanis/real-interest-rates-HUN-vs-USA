@@ -1,0 +1,127 @@
+---
+title: "Real interest rates"
+author: "Andras Danis"
+format: html
+---
+
+## Download U.S. nominal interest rate
+
+For the U.S. nominal interest rate, we use the Federal Funds Effective Rate
+<https://fred.stlouisfed.org/series/FEDFUNDS>
+
+```{r}
+library(tidyverse)
+library(fredr)
+fredr_set_key("xxxxx") # set key to the FRED API
+# you first need to request a key here: https://fred.stlouisfed.org/docs/api/api_key.html
+
+nom_us = fredr(
+  series_id = "FEDFUNDS",
+  observation_start = as.Date("2000-01-01"),
+  # observation_end = as.Date("2022-01-01"),
+  frequency = "m"
+)
+```
+
+## Download U.S. inflation rate
+
+For the U.S. inflation rate, we use the CPI for urban consumers:
+<https://fred.stlouisfed.org/series/CPIAUCSL>
+
+```{r}
+cpi_us = fredr(
+  series_id = "CPIAUCSL",
+  observation_start = as.Date("1999-01-01"),
+  # observation_end = as.Date("2022-01-01"),
+  frequency = "m"
+)
+
+# calculate 12-month percentage change in CPI
+cpi_us$inf_us = cpi_us$value / lag(cpi_us$value, n=12) - 1
+```
+
+## Combine nominal interest rate and inflation rate in single dataframe:
+
+```{r}
+# drop unnecessary variables
+nom_us = subset(nom_us, select = c(date, value))
+cpi_us = subset(cpi_us, select = c(date, inf_us))
+
+# rename variables
+names(nom_us)[names(nom_us) == 'value'] = 'nom_us'
+
+nom_us$nom_us = nom_us$nom_us / 100
+
+# add the variable cpi_us to the data frame nom_us using an inner join
+d = inner_join(nom_us, cpi_us, by = "date")
+
+# calculate real interest rate using Fisher equation:
+d$real_us = (1+d$nom_us) / (1+d$inf_us) - 1
+```
+
+## Download Hungarian data:
+
+For interest rates, use "Interest Rates: Immediate Rates (< 24 Hours): Central Bank Rates: Total for Hungary" from FRED: <https://fred.stlouisfed.org/series/IRSTCB01HUM156N>
+
+```{r}
+nom_hu = fredr(
+  series_id = "IRSTCB01HUM156N",
+  observation_start = as.Date("2000-01-01"),
+  # observation_end = as.Date("2022-01-01"),
+  frequency = "m"
+)
+```
+
+For CPI, use "Consumer Price Indices (CPIs, HICPs), COICOP 1999: Consumer Price Index: Total for Hungary" from FRED: <https://fred.stlouisfed.org/series/CPALTT01HUM659N>
+
+According to FRED, this is "Growth rate same period previous year, Not Seasonally Adjusted".
+
+```{r}
+cpi_hu = fredr(
+  series_id = "CPALTT01HUM659N",
+  observation_start = as.Date("2000-01-01"),
+  # observation_end = as.Date("2022-01-01"),
+  frequency = "m"
+)
+```
+
+## Combine nominal interest rate and inflation rate in single dataframe:
+
+```{r}
+# drop unnecessary variables
+nom_hu = subset(nom_hu, select = c(date, value))
+cpi_hu = subset(cpi_hu, select = c(date, value))
+
+# rename variables
+names(nom_hu)[names(nom_hu) == 'value'] = 'nom_hu'
+names(cpi_hu)[names(cpi_hu) == 'value'] = 'inf_hu'
+
+nom_hu$nom_hu = nom_hu$nom_hu / 100
+cpi_hu$inf_hu = cpi_hu$inf_hu / 100
+
+# add the variable cpi_us to the data frame nom_us using an inner join
+d2 = inner_join(nom_hu, cpi_hu, by = "date")
+
+# calculate real interest rate using Fisher equation:
+d2$real_hu = (1+d2$nom_hu) / (1+d2$inf_hu) - 1
+
+# combine d and d2 using inner join
+d = inner_join(d, d2, by = "date")
+```
+
+## Plot results
+```{r}
+# Create a line plot using ggplot2 that shows both d$real_us and d$real_hu
+ggplot(d, aes(x=date)) +
+  geom_line(aes(y=real_us, color="US")) +
+  geom_line(aes(y=real_hu, color="HU")) +
+  labs(title="Real interest rates",
+       x="Date",
+       y="Real interest rate",
+       color="Country") +
+  theme_minimal() + 
+  scale_x_date(date_breaks = "2 year", date_labels = "%Y")
+```
+
+
+
