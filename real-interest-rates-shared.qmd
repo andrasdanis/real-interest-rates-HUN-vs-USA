@@ -6,19 +6,18 @@ format: html
 
 ## Download U.S. nominal interest rate
 
-For the U.S. nominal interest rate, we use the Federal Funds Effective Rate
+For the U.S. nominal interest rate, we use the Federal Funds Effective Rate:
 <https://fred.stlouisfed.org/series/FEDFUNDS>
 
 ```{r}
 library(tidyverse)
 library(fredr)
 fredr_set_key("xxxxx") # set key to the FRED API
-# you first need to request a key here: https://fred.stlouisfed.org/docs/api/api_key.html
+# you first need to apply for a key at https://fred.stlouisfed.org/docs/api/api_key.html
 
 nom_us = fredr(
   series_id = "FEDFUNDS",
-  observation_start = as.Date("2000-01-01"),
-  # observation_end = as.Date("2022-01-01"),
+  observation_start = as.Date("2010-01-01"),
   frequency = "m"
 )
 ```
@@ -31,8 +30,7 @@ For the U.S. inflation rate, we use the CPI for urban consumers:
 ```{r}
 cpi_us = fredr(
   series_id = "CPIAUCSL",
-  observation_start = as.Date("1999-01-01"),
-  # observation_end = as.Date("2022-01-01"),
+  observation_start = as.Date("2009-01-01"),
   frequency = "m"
 )
 
@@ -66,8 +64,7 @@ For interest rates, use "Interest Rates: Immediate Rates (< 24 Hours): Central B
 ```{r}
 nom_hu = fredr(
   series_id = "IRSTCB01HUM156N",
-  observation_start = as.Date("2000-01-01"),
-  # observation_end = as.Date("2022-01-01"),
+  observation_start = as.Date("2010-01-01"),
   frequency = "m"
 )
 ```
@@ -79,8 +76,7 @@ According to FRED, this is "Growth rate same period previous year, Not Seasonall
 ```{r}
 cpi_hu = fredr(
   series_id = "CPALTT01HUM659N",
-  observation_start = as.Date("2000-01-01"),
-  # observation_end = as.Date("2022-01-01"),
+  observation_start = as.Date("2010-01-01"),
   frequency = "m"
 )
 ```
